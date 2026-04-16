@@ -72,6 +72,7 @@ function renderCards() {
       const stat = userStats[acc.id];
       const league = LEAGUE_DATA.find(l => l.id == stat.leagueId) || LEAGUE_DATA[0];
       const progress = (stat.count / league.attacks) * 100;
+      const barColor = progress >= 100 ? '#20C607' : '#fcc419';
 
       grid.innerHTML += `
             <div class="card">
@@ -81,11 +82,7 @@ function renderCards() {
                         <h3>${acc.name}</h3>
                         <div class="controls-small">
                             <!-- FIXED TH SELECT HERE -->
-                            <select onchange="updateTH(${acc.id}, this.value)" class="styled-select">
-                                ${Array.from({length: 18}, (_, i) => i + 1).map(v => 
-                                    `<option value="${v}" ${stat.th == v ? 'selected' : ''}>TH ${v}</option>`
-                                ).join('')}
-                            </select>
+                            
                             
                             <select onchange="updateLeague(${acc.id}, this.value)" class="styled-select">
                                 ${LEAGUE_DATA.map(l => 
@@ -114,7 +111,7 @@ function renderCards() {
                 </div>
 
                 <div class="prog-wrapper">
-                    <div class="prog-fill" style="width: ${progress}%"></div>
+                    <div class="prog-fill" style="width: ${progress}%; background-color: ${barColor}"></div>
                 </div>
             </div>
         `;
