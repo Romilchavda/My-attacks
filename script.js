@@ -139,10 +139,35 @@ function updateTH(id, th) {
 }
 
 function resetAllData() {
-   if (confirm("Reset all accounts?")) {
-      ACCOUNTS.forEach(a => userStats[a.id].count = 0);
-      sync();
-   }
+    if (confirm("Weekly data reset karein aur History mein save karein?")) {
+        // 1. Purana data nikalna
+        let history = JSON.parse(localStorage.getItem('coc_history')) || [];
+        
+        // 2. Current data ka ek snapshot banana
+        let snapshot = {
+            date: new Date().toLocaleDateString('en-GB'), // Aaj ki date
+            accounts: ACCOUNTS.map(acc => {
+                let stat = userStats[acc.id];
+                let league = LEAGUE_DATA.find(l => l.id == stat.leagueId);
+                return {
+                    name: acc.name,
+                    count: stat.count,
+                    target: league ? league.attacks : 0,
+                    leagueIcon: league ? league.iconUrls.small : ""
+                };
+            })
+        };
+
+        // 3. History mein add karna
+        history.unshift(snapshot); // Naya data sabse upar rahega
+        localStorage.setItem('coc_history', JSON.stringify(history));
+
+        // 4. Counts ko reset karna
+        ACCOUNTS.forEach(a => userStats[a.id].count = 0);
+        sync();
+        
+        alert("Data History mein save ho gaya hai!");
+    }
 }
 
 function sync() {

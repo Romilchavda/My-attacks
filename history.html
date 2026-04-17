@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attack History | Elite Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo" onclick="window.location.href='index.html'" style="cursor:pointer">
+                <i class="fas fa-history"></i>
+                <span>ATTACK<span>HISTORY</span></span>
+            </div>
+            <button class="reset-btn" onclick="window.location.href='index.html'" style="background:var(--cyan); color:#000">
+                <i class="fas fa-home"></i> BACK
+            </button>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <header class="welcome-section">
+            <h2>Weekly Archives</h2>
+            <p>Pichle hafton ka performance record.</p>
+        </header>
+
+        <div id="history-list" class="history-grid">
+            <!-- History data yahan aayega -->
+        </div>
+    </main>
+
+    <script>
+        const historyData = JSON.parse(localStorage.getItem('coc_history')) || [];
+        const historyList = document.getElementById('history-list');
+
+        if (historyData.length === 0) {
+            historyList.innerHTML = "<p style='text-align:center; color:var(--text-dim)'>Abhi tak koi history save nahi hui hai.</p>";
+        }
+
+        historyData.forEach((week, index) => {
+            let weekHtml = `
+                <div class="history-card">
+                    <div class="week-header">
+                        <h3>Week: ${week.date}</h3>
+                        <button class="del-hist" onclick="deleteHistory(${index})"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="week-stats-grid">
+            `;
+
+            week.accounts.forEach(acc => {
+                weekHtml += `
+                    <div class="mini-stat">
+                        <img src="${acc.leagueIcon}" width="30">
+                        <div class="mini-info">
+                            <span class="mini-name">${acc.name}</span>
+                            <span class="mini-score">${acc.count} / ${acc.target}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            weekHtml += `</div></div>`;
+            historyList.innerHTML += weekHtml;
+        });
+
+        function deleteHistory(index) {
+            if(confirm("Ye record delete kar dein?")) {
+                let history = JSON.parse(localStorage.getItem('coc_history'));
+                history.splice(index, 1);
+                localStorage.setItem('coc_history', JSON.stringify(history));
+                location.reload();
+            }
+        }
+    </script>
+
+    <style>
+        .history-grid { display: flex; flex-direction: column; gap: 20px; }
+        .history-card { background: var(--card-bg); padding: 20px; border-radius: 15px; border-left: 5px solid var(--accent); }
+        .week-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .week-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .mini-stat { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
+        .mini-info { display: flex; flex-direction: column; }
+        .mini-name { font-size: 0.8rem; font-weight: bold; color: var(--cyan); }
+        .mini-score { font-size: 0.9rem; font-family: 'Rajdhani'; }
+        .del-hist { background: transparent; color: #ff4757; border: none; cursor: pointer; font-size: 1.1rem; }
+    </style>
+</body>
+</html>
