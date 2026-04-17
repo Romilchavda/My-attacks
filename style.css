@@ -316,6 +316,19 @@ body {
     }
 }
 
+.nav-actions button {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-family: 'Rajdhani', sans-serif;
+    border-radius: 8px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 /* --- Small Screen Fixes --- */
 @media (max-width: 400px) {
     .count-text {
