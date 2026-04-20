@@ -4,212 +4,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attack History | Elite Tracker</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>History | CoC Elite</title>
+    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
     
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo" onclick="window.location.href='index.html'" style="cursor:pointer">
-                <i class="fas fa-history"></i>
-                <span class="logo-text">HISTORY</span>
-            </div>
-            
-            <div class="nav-actions" style="display: flex; gap: 8px; align-items: center;">
-                <!-- Hidden File Input -->
-                <input type="file" id="importFile" style="display: none;" onchange="importData(event)">
-                
-                <!-- Backup Button -->
-                <button class="action-btn-small" onclick="exportData()" title="Backup Data" style="background: var(--accent); color: #000;">
-                    <i class="fas fa-download"></i>
-                </button>
-                
-                <!-- Restore Button -->
-                <button class="action-btn-small" onclick="document.getElementById('importFile').click()" title="Restore Data" style="background: var(--cyan); color: #000;">
-                    <i class="fas fa-upload"></i>
-                </button>
-                
-                <!-- Back Button -->
-                <button class="action-btn-small" onclick="window.location.href='index.html'" title="Go Back" style="background: #30363d; color: #fff;">
-                    <i class="fas fa-home"></i>
-                </button>
-            </div>
+    <header class="header-bar">
+        <button class="menu-trigger" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+        <div class="logo">ELITE<span>ARCHIVES</span></div>
+        <div style="display:flex; gap:10px;">
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+            <button class="btn-m" onclick="exportData()" style="width:40px; height:40px; border-radius:10px;"><i class="fas fa-download"></i></button>
+            <button class="btn-m" onclick="document.getElementById('importFile').click()" style="width:40px; height:40px; border-radius:10px; background:var(--cyan); color:#000;"><i class="fas fa-upload"></i></button>
         </div>
-    </nav>
+    </header>
     
-    <main class="dashboard-container">
-        <header class="welcome-section">
-            <h2>Weekly Archives</h2>
-            <p>Pichle hafton ka performance record.</p>
-        </header>
-        
-        <div id="history-list" class="history-grid">
-            <!-- History data yahan aayega -->
+    <div class="overlay" onclick="toggleMenu()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">ELITE<span>TRACKER</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-th-large"></i> DASHBOARD</a></li>
+            <li><a href="history.html" class="active"><i class="fas fa-history"></i> HISTORY</a></li>
+            <li><a href="upgrades.html"><i class="fas fa-hammer"></i> UPGRADES</a></li>
+        </ul>
+    </aside>
+    
+    <main class="container">
+        <div id="history-list" style="display:flex; flex-direction:column; gap:20px;">
+            <!-- History Cards Injected Here -->
         </div>
     </main>
     
+    <script src="js/history.js"></script>
     <script>
-        const historyData = JSON.parse(localStorage.getItem('coc_history')) || [];
-        const historyList = document.getElementById('history-list');
-        
-        if (historyData.length === 0) {
-            historyList.innerHTML = "<p style='text-align:center; color:var(--text-dim)'>Abhi tak koi history save nahi hui hai.</p>";
-        }
-        
-        historyData.forEach((week, index) => {
-            let weekHtml = `
-                <div class="history-card">
-                    <div class="week-header">
-                        <h3>Week: ${week.date}</h3>
-                        <button class="del-hist" onclick="deleteHistory(${index})"><i class="fas fa-trash"></i></button>
-                    </div>
-                    <div class="week-stats-grid">
-            `;
-            
-            week.accounts.forEach(acc => {
-                weekHtml += `
-                    <div class="mini-stat">
-                        <img src="${acc.leagueIcon}" width="30">
-                        <div class="mini-info">
-                            <span class="mini-name">${acc.name}</span>
-                            <span class="mini-score">${acc.count} / ${acc.target}</span>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            weekHtml += `</div></div>`;
-            historyList.innerHTML += weekHtml;
-        });
-        
-        function deleteHistory(index) {
-            if (confirm("Ye record delete kar dein?")) {
-                let history = JSON.parse(localStorage.getItem('coc_history'));
-                history.splice(index, 1);
-                localStorage.setItem('coc_history', JSON.stringify(history));
-                location.reload();
-            }
-        }
-        // --- 1. BACKUP (EXPORT) LOGIC ---
-        function exportData() {
-            // Current stats aur History dono ko ek saath save karenge
-            const backupData = {
-                weeklyStats: JSON.parse(localStorage.getItem('coc_ultra_v3')), // Dashboard data
-                fullHistory: JSON.parse(localStorage.getItem('coc_history')) // History page data
-            };
-            
-            // Data ko JSON string mein badalna
-            const dataStr = JSON.stringify(backupData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-            
-            // Download link banana
-            const exportFileDefaultName = `CoC_Backup_${new Date().toLocaleDateString()}.json`;
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-        }
-        
-        // --- 2. RESTORE (IMPORT) LOGIC ---
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    
-                    // Validation: Check karna ki sahi file hai ya nahi
-                    if (importedData.weeklyStats || importedData.fullHistory) {
-                        if (confirm("Naya data restore karein? Purana data overwrite ho jayega!")) {
-                            
-                            if (importedData.weeklyStats)
-                                localStorage.setItem('coc_ultra_v3', JSON.stringify(importedData.weeklyStats));
-                            
-                            if (importedData.fullHistory)
-                                localStorage.setItem('coc_history', JSON.stringify(importedData.fullHistory));
-                            
-                            alert("✅ Restore Successful! Page refresh ho raha hai...");
-                            location.reload();
-                        }
-                    } else {
-                        alert("❌ Galat file! Ye CoC Backup file nahi hai.");
-                    }
-                } catch (err) {
-                    alert("❌ File read karne mein error aaya!");
-                }
-            };
-            reader.readAsText(file);
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.querySelector('.overlay').classList.toggle('active');
         }
     </script>
-    
-    <style>
-        .history-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .history-card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            border-left: 5px solid var(--accent);
-        }
-        
-        .week-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
-        
-        .week-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        
-        .mini-stat {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            border-radius: 10px;
-        }
-        
-        .mini-info {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .mini-name {
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: var(--cyan);
-        }
-        
-        .mini-score {
-            font-size: 0.9rem;
-            font-family: 'Rajdhani';
-        }
-        
-        .del-hist {
-            background: transparent;
-            color: #ff4757;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1rem;
-        }
-    </style>
 </body>
 
 </html>
