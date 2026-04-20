@@ -1,7 +1,7 @@
-// --- 1. CONFIGURATION (Inhe sahi se bharein) ---
-const GITHUB_USER = "Romilchavda"; // Apna GitHub Username yahan likhein
-const REPO_NAME = "My-attacks";   // Apne Repository ka naam yahan likhein
-const ASSETS_FOLDER = "assets";   // MP3 folder ka naam
+// --- 1. CONFIGURATION ---
+const GITHUB_USER = "Romilchavda"; 
+const REPO_NAME = "My-attacks";   
+const ASSETS_FOLDER = "assets";   
 
 const ACCOUNTS = [
     { id: 1, name: "Romil Chavda-Th17", tag: "PLGQLGLRY" },
@@ -24,13 +24,9 @@ async function loadSounds() {
     try {
         const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${ASSETS_FOLDER}`);
         const files = await response.json();
-
-        // Dropdown clear karein
         soundSelect.innerHTML = '';
 
-        // Filter MP3 files
         const mp3s = files.filter(f => f.name.endsWith('.mp3'));
-
         if(mp3s.length === 0) {
             soundSelect.innerHTML = '<option value="assets/alarm.mp3">NO MP3 FOUND</option>';
             return;
@@ -38,21 +34,22 @@ async function loadSounds() {
 
         mp3s.forEach(file => {
             const option = document.createElement('option');
-            option.value = file.path; // Path save hoga: assets/music.mp3
+            option.value = file.path; 
             option.textContent = file.name.replace('.mp3', '').replace(/_/g, ' ').toUpperCase();
             soundSelect.appendChild(option);
         });
     } catch (e) {
-        console.error("Sounds load error:", e);
         soundSelect.innerHTML = '<option value="assets/alarm.mp3">DEFAULT ALARM</option>';
     }
 }
 
 // Initial Calls
 const accSelect = document.getElementById('accSelect');
-ACCOUNTS.forEach(acc => {
-    accSelect.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
-});
+if(accSelect) {
+    ACCOUNTS.forEach(acc => {
+        accSelect.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
+    });
+}
 loadSounds();
 
 // --- 3. LOGIC ---
@@ -60,7 +57,7 @@ loadSounds();
 function addUpgrade() {
     const accId = accSelect.value;
     const name = document.getElementById('upName').value;
-    const soundFile = document.getElementById('soundSelect').value; // Get selected sound
+    const soundFile = document.getElementById('soundSelect').value;
     const d = parseInt(document.getElementById('days').value) || 0;
     const h = parseInt(document.getElementById('hours').value) || 0;
     const m = parseInt(document.getElementById('mins').value) || 0;
@@ -76,13 +73,17 @@ function addUpgrade() {
         itemName: name,
         endTime: endTime,
         notified: false,
-        sound: soundFile // Sound path save kar liya
+        sound: soundFile
     };
 
     upgrades.push(newUp);
     save();
     render();
-    if (Notification.permission !== 'granted') Notification.requestPermission();
+    
+    // Request permission on first add
+    if (Notification.permission !== 'granted') {
+        Notification.requestPermission();
+    }
 }
 
 function render() {
@@ -96,20 +97,19 @@ function render() {
         const isDone = timeLeft <= 0;
 
         if (isDone && !up.notified) {
-            triggerAlarm(up.itemName, acc.name, up.sound); // Sound path bheja
+            triggerAlarm(up.itemName, acc.name, up.sound);
             up.notified = true;
             save();
         }
 
         list.innerHTML += `
-            <div class="card ${isDone ? 'completed' : ''}" style="border-color:${isDone?'var(--success)':'#30363d'}">
+            <div class="card ${isDone ? 'completed' : ''}" style="border-color:${isDone?'var(--success)':'#30363d'}; position:relative;">
                 <i class="fas fa-trash" style="position:absolute; top:15px; right:15px; color:var(--danger); cursor:pointer;" onclick="deleteUpgrade(${up.id})"></i>
                 <span style="font-size:0.7rem; color:var(--text-dim)">${acc.name}</span>
                 <div style="font-family:'Rajdhani'; font-weight:bold; font-size:1.2rem; margin:5px 0;">${up.itemName}</div>
-                <div style="font-size:2.5rem; font-family:'Rajdhani'; font-weight:800; color:${isDone?'var(--success)':'var(--cyan)'}">
+                <div style="font-size:2.2rem; font-family:'Rajdhani'; font-weight:800; color:${isDone?'var(--success)':'var(--cyan)'}">
                     ${isDone ? "READY!" : formatTime(timeLeft)}
                 </div>
-                
                 <button class="btn btn-p" style="width:100%; margin-top:15px; height:45px;" onclick="window.open('https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=${acc.tag}', '_blank')">
                     OPEN ACCOUNT
                 </button>
@@ -127,16 +127,23 @@ function formatTime(ms) {
     return `${d}d ${h}h ${m}m ${sec}s`;
 }
 
-function triggerAlarm(item, acc, soundPath) {
-    // Custom sound play karein
+async function triggerAlarm(item, acc, soundPath) {
+    // 1. Play Sound (Works only if tab is open)
     const audio = new Audio(soundPath || 'assets/alarm.mp3');
-    audio.play().catch(e => console.log("Sound play failed: Interaction required."));
+    audio.play().catch(e => console.log("Audio needs user interaction"));
 
-    if (window.Notification && Notification.permission === 'granted') {
-        new Notification("Upgrade Finished! ✅", {
-            body: `${acc}: ${item} complete ho gaya!`,
-            icon: "https://cdn-icons-png.flaticon.com/512/3522/3522030.png"
+    // 2. Send Background Notification via Service Worker
+    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification(`CoC Upgrade Ready! ✅`, {
+            body: `${acc}: ${item} complete ho gaya hai!`,
+            icon: 'https://cdn-icons-png.flaticon.com/512/3522/3522030.png',
+            vibrate: [200, 100, 200],
+            tag: 'upgrade-' + Date.now(),
+            requireInteraction: true // Notification screen par ruki rahegi
         });
+    } else if (Notification.permission === 'granted') {
+        new Notification(`${acc}: ${item} Ready! ✅`);
     } else {
         alert(`${acc}: ${item} Ready!`);
     }

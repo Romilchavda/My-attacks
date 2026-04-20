@@ -1,0 +1,15 @@
+{
+  "name": "CoC Elite Tracker",
+  "short_name": "CoC Tracker",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0b0e14",
+  "theme_color": "#fcc419",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3522/3522030.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

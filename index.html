@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | CoC Attacks</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
 
+<body>
+    
     <header class="header-bar">
         <button class="menu-trigger" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
         <div class="logo" style="font-family:'Rajdhani'; font-weight:bold; font-size:1.4rem;">ROMIL<span>CHAVDA</span></div>
         <button class="btn-m" onclick="resetAllData()" style="width:auto; height:38px; font-size:0.8rem; padding:0 15px; border-radius:8px;">RESET</button>
     </header>
-
+    
     <div class="overlay" onclick="toggleMenu()"></div>
     <aside class="sidebar" id="sidebar">
         <div class="logo">ELITE<span>TRACKER</span></div>
@@ -24,19 +27,25 @@
             <li><a href="upgrades.html"><i class="fas fa-hammer"></i> UPGRADES</a></li>
         </ul>
     </aside>
-
+    
     <main class="container">
         <div id="account-grid" class="grid">
             <!-- JS Inject Cards -->
         </div>
     </main>
-
+    
     <script src="js/dashboard.js"></script>
     <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log("Service Worker Registered"));
+        }
+        
         function toggleMenu() {
             document.getElementById('sidebar').classList.toggle('active');
             document.querySelector('.overlay').classList.toggle('active');
         }
     </script>
 </body>
+
 </html>
